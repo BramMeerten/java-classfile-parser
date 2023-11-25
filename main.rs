@@ -11,6 +11,15 @@ struct Class {
     major_version: u16,
     const_pool_count: u16,
     const_pool: Vec<ConstantPoolEntry>,
+    access_flags: u16,
+    this_class: u16,
+    super_class: u16,
+    interfaces_count: u16,
+    fields_count: u16,
+    methods_count: u16,
+    methods: Vec<Method>,
+    attributes_count: u16,
+    attributes: Vec<Attribute>,
 }
 
 #[derive(Debug)]
@@ -31,19 +40,67 @@ enum ConstantPoolEntry {
     InvokeDynamic(u8, u16, u16),
 }
 
+#[derive(Debug)]
+#[allow(dead_code)]
+struct Method {
+    access_flags: u16,
+    name_index: u16,
+    descriptor_index: u16,
+    attributes_count: u16,
+    attributes: Vec<Attribute>,
+}
+
+
+#[derive(Debug)]
+#[allow(dead_code)]
+struct Attribute {
+    attribute_name_index: u16,
+    attribute_length: u32,
+    info: Vec<u8>,
+}
+
 fn main() {
     let bytes = open_file("./java/Main.class");
 
-    let mut const_pool = Vec::new();
     let magic = read_u32(&bytes, 0);
     let minor_version = read_u16(&bytes, 4);
     let major_version = read_u16(&bytes, 6);
-    let const_pool_count = read_u16(&bytes, 8);
 
+    let const_pool_count = read_u16(&bytes, 8);
     let mut pos = 10;
+    let mut const_pool = Vec::new();
+
     for _ in 0..(const_pool_count-1) {
         let (result, new_pos) = read_constant_pool(&bytes, pos);
         const_pool.push(result);
+        pos = new_pos;
+    }
+
+    let access_flags = read_u16(&bytes, pos);
+    let this_class = read_u16(&bytes, pos+2);
+    let super_class = read_u16(&bytes, pos+4);
+    let interfaces_count = read_u16(&bytes, pos+6);
+    assert!(interfaces_count == 0);
+    let fields_count = read_u16(&bytes, pos+8);
+    assert!(fields_count == 0);
+
+    let methods_count = read_u16(&bytes, pos+10);
+    pos = pos + 12;
+    let mut methods = Vec::new();
+
+    for _ in 0..methods_count {
+        let (result, new_pos) = read_method(&bytes, pos);
+        methods.push(result);
+        pos = new_pos;
+    }
+    
+    let attributes_count = read_u16(&bytes, pos);
+    pos = pos+2;
+    let mut attributes = Vec::new();
+
+    for _ in 0..attributes_count {
+        let (result, new_pos) = read_attribute(&bytes, pos);
+        attributes.push(result);
         pos = new_pos;
     }
 
@@ -53,6 +110,15 @@ fn main() {
         major_version,
         const_pool_count,
         const_pool,
+        access_flags,
+        this_class, 
+        super_class, 
+        interfaces_count,
+        fields_count,
+        methods_count,
+        methods,
+        attributes,
+        attributes_count,
     };
     println!("{:#?}", class);
 }
@@ -144,6 +210,46 @@ fn read_constant_pool(bytes: &Vec<u8>, pos: usize) -> (ConstantPoolEntry, usize)
             panic!("NOT SUPPORTED: {unknown_tag}");
         }
     };
+}
+
+fn read_method(bytes: &Vec<u8>, pos: usize) -> (Method, usize) {
+    let access_flags = read_u16(&bytes, pos);
+    let name_index = read_u16(&bytes, pos+2);
+    let descriptor_index = read_u16(&bytes, pos+4);
+    
+    let attributes_count = read_u16(&bytes, pos+6);
+    let mut attributes = Vec::new();
+    let mut pos = pos+8;
+    for _ in 0..attributes_count {
+        let (result, new_pos) = read_attribute(&bytes, pos);
+        attributes.push(result);
+        pos = new_pos;
+    }
+
+    return (Method {
+        access_flags,
+        name_index,
+        descriptor_index,
+        attributes_count,
+        attributes,
+    }, pos);
+}
+
+fn read_attribute(bytes: &Vec<u8>, pos: usize) -> (Attribute, usize) {
+    let attribute_name_index = read_u16(&bytes, pos);
+    let attribute_length = read_u32(&bytes, pos+2);
+    
+    let mut info = Vec::new();
+    for i in 0..(attribute_length as usize) {
+        let result = read_u8(&bytes, pos+6+i);
+        info.push(result);
+    }
+
+    return (Attribute {
+        attribute_name_index,
+        attribute_length,
+        info,
+    }, pos+6+(attribute_length as usize));
 }
 
 fn open_file(file: &str) -> Vec<u8> {
