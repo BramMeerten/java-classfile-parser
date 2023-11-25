@@ -1,5 +1,6 @@
 # Java classfile parser (WIP)
 A java classfile parser written in Rust. Project for learning both Rust and the java classfile structure.
+
 Idea inspired by a [video by tsoding](https://www.youtube.com/watch?v=67FmRyv8jTM).
 
 ## Instructions
