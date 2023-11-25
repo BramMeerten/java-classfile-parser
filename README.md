@@ -3,9 +3,9 @@ A java classfile parser written in Rust. Project for learning both Rust and the 
 Idea inspired by a [video by tsoding](https://www.youtube.com/watch?v=67FmRyv8jTM).
 
 ## Instructions
-- [Optional] Compile java class `javac java/Main.java`
-- Build: `cargo build`
-- Run: `./target/debug/java-parser ./java/Main.class` or `cargo run -- ./java/Main.class` 
+1. Compile java class `javac java/Main.java` (Already compiled and included in git repo)
+2. Build: `cargo build`
+3. Run: `./target/debug/java-parser ./java/Main.class` or `cargo run -- ./java/Main.class` 
 
 ## TODO
 - Parse complete file:
