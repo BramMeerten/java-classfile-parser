@@ -1,10 +1,11 @@
 # Java classfile parser (WIP)
 A java classfile parser written in Rust. Project for learning both Rust and the java classfile structure.
+Idea inspired by a [video by tsoding](https://www.youtube.com/watch?v=67FmRyv8jTM).
 
 ## Instructions
 - [Optional] Compile java class `javac java/Main.java`
 - Build: `cargo build`
-- Run: `./target/debug/java-parser` or `cargo run` 
+- Run: `./target/debug/java-parser ./java/Main.class` or `cargo run -- ./java/Main.class` 
 
 ## TODO
 - Parse complete file:
@@ -24,5 +25,5 @@ A java classfile parser written in Rust. Project for learning both Rust and the 
   - [x] methods[methods_count];
   - [x] attributes_count;
   - [x] attributes[attributes_count];
-- [ ] Command line args instead of hardcoded file
+- [x] Command line args instead of hardcoded file
 - [ ] Create basic JVM?
